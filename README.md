@@ -46,9 +46,35 @@ So far the sitemap is very simple, in the early stages. I want 6 Pages:
 -Pet Details Page: more indepth information about the breed and about the dog itself!
 -match history
 
+Below is the database schema (sitemap) for **Version 1**:
+
+![Sitemap - Database Schema](./images/v1-sitemap.png)
+
 ### Mockups
 
+mokups and sitemap in images folder!!!
 Provide visuals of your app's screens. You can use pictures of hand-drawn sketches, or wireframing tools like Figma. see pictures.
+Below are the wireframes for **Version 1**:
+
+Below are the wireframes for **Version 1**:
+
+Home Page
+![Home Page Wireframe](./images/wireframe-page1.jpg)
+
+Quiz Page
+![Quiz Page Wireframe](./images/wireframe-page2.jpg)
+
+Results Page
+![Results Page Wireframe](./images/wireframe-page3.jpg)
+
+Pet Details Page
+![Pet Details Page Wireframe](./images/wireframe-page4.jpg)
+
+Match History Page
+![Match History Page Wireframe](./images/wireframe-page5.jpg)
+
+See Similar Pets Section (Inside Pet Details Page)
+![See Similar Pets Wireframe](./images/wireframe-page6.jpg)
 
 ### Data
 
