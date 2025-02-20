@@ -43,11 +43,17 @@ const Pets = () => {
             <div key={pet.id} className="pet-card">
               <h2>{pet.name}</h2>
               {pet.primary_photo_cropped ? (
-                <img src={pet.primary_photo_cropped.small} alt={pet.name} />
+                <img
+                  src={
+                    pet.primary_photo_cropped?.small ||
+                    "https://example.com/default-image.jpg"
+                  }
+                  alt={pet.name}
+                />
               ) : (
                 <p>No Image Available</p>
               )}
-              <p>Breed: {pet.breeds.primary}</p>
+              <p>Breed: {pet.breeds?.primary || "unknown"}</p>
               <p>Age: {pet.age}</p>
               <p>Gender: {pet.gender}</p>
               <p>Size: {pet.size}</p>
