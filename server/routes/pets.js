@@ -1,5 +1,6 @@
 const express = require("express");
 const axios = require("axios");
+const pool = require("../config/db");
 require("dotenv").config();
 
 const router = express.Router();
@@ -14,7 +15,7 @@ async function getAccessToken() {
     params.append("client_secret", process.env.PETFINDER_CLIENT_SECRET);
 
     const response = await axios.post(
-      "https://api.petfinder.com/v2/oauth2/token",
+      `${PETFINDER_API_URL}/oauth2/token`,
       params,
       {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -31,10 +32,11 @@ async function getAccessToken() {
   }
 }
 
-router.get("/", async (req, res) => {
+router.get("/fetch-and-store", async (req, res) => {
   try {
+    console.log("Fetching access token...");
     const accessToken = await getAccessToken();
-    console.log("Access token obtained:", accessToken ? "Yes" : "No");
+    console.log("Access token received:", accessToken ? " Yes" : " No");
 
     const response = await axios.get(`${PETFINDER_API_URL}/animals`, {
       headers: {
@@ -42,28 +44,66 @@ router.get("/", async (req, res) => {
       },
       params: {
         type: "Dog",
-        limit: 10,
+        limit: 100,
       },
     });
 
-    const cleanedPets = response.data.animals.map((pet) => ({
-      id: pet.id,
-      name: pet.name,
-      breed: pet.breeds.primary || "Unknown",
-      size: pet.size || "Unknown",
-      energy_level: pet.attributes.spayed_neutered ? "Moderate" : "High",
-      photo: pet.primary_photo_cropped
-        ? pet.primary_photo_cropped.full
-        : "https://example.com/default-image.jpg",
-    }));
+    const pets = response.data.animals;
+    console.log(`Retrieved ${pets.length} pets from Petfinder`);
 
-    res.json(cleanedPets);
+    let storedPets = [];
+
+    for (const pet of pets) {
+      const [checkPet] = await pool.execute(
+        "SELECT id FROM pets WHERE id = ?",
+        [pet.id]
+      );
+
+      if (checkPet.length === 0) {
+        await pool.execute(
+          "INSERT INTO pets (id, name, breed, size, energy_level, grooming_needs, location, image_url, age, gender) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+          [
+            pet.id,
+            pet.name,
+            pet.breeds || "Unknown",
+            pet.size || "Unknown",
+            pet.attributes.spayed_neutered ? "Moderate" : "High",
+            "moderate grooming",
+            pet.contact.address.city || "unknown",
+            pet.primary_photo_cropped?.full ||
+              (pet.photos.length > 0 ? pet.photos[0].full : null) ||
+              "https://placehold.co/300x200?text=No+Image",
+            pet.age || "Unknown",
+            pet.gender || "Unknown",
+          ]
+        );
+        storedPets.push({ id: pet.id, name: pet.name });
+      }
+    }
+
+    console.log("Stored pets count:", storedPets.length);
+
+    res.json({
+      message: "Pets fetched and stored successfully!",
+      petsAdded: storedPets.length,
+      addedPets: storedPets,
+    });
   } catch (error) {
     console.error(
       "Error fetching pets:",
       error.response?.data || error.message
     );
     res.status(500).json({ error: "Failed to fetch adoptable pets" });
+  }
+});
+
+router.get("/", async (req, res) => {
+  try {
+    const [pets] = await pool.execute("SELECT * FROM pets");
+    res.json(pets);
+  } catch (error) {
+    console.error("Error fetching pets from database:", error);
+    res.status(500).json({ error: "Failed to retrieve pets from database" });
   }
 });
 
