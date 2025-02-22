@@ -1,33 +1,26 @@
 import React, { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 const Matches = () => {
+  const { userId } = useParams();
   const [matches, setMatches] = useState([]);
-  const [searchParams] = useSearchParams();
-  const email = searchParams.get("email");
 
   useEffect(() => {
     const fetchMatches = async () => {
-      if (!email) return;
+      if (!userId) return;
 
       try {
-        const userResponse = await fetch(
-          `http://localhost:5000/api/quiz/user?email=${email}`
+        console.log(`Fetching matches for user ID: ${userId}`);
+
+        const matchResponse = await fetch(
+          `http://localhost:5000/api/quiz/match/${userId}`
         );
-
-        const userData = await userResponse.json();
-
-        if (!userData.id) {
-          console.error("User not found");
+        if (!matchResponse.ok) {
+          console.error("Failed to fetch matches:", matchResponse.statusText);
           return;
         }
 
-        // Fetch matches for the user
-        const matchResponse = await fetch(
-          `http://localhost:5000/api/quiz/match/${userData.id}`
-        );
         const matchData = await matchResponse.json();
-
         setMatches(matchData);
       } catch (error) {
         console.error("Error fetching matches:", error);
@@ -35,7 +28,7 @@ const Matches = () => {
     };
 
     fetchMatches();
-  }, [email]);
+  }, [userId]);
 
   return (
     <div>

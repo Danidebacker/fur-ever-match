@@ -13,20 +13,29 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: "Invalid answers format" });
     }
 
+    let userId;
+
     const [existingUser] = await pool.execute(
       "SELECT id FROM users WHERE email = ?",
       [email]
     );
 
-    let userId;
     if (existingUser.length === 0) {
+      console.log("New user detected, inserting into database...");
       const [insertUser] = await pool.execute(
         "INSERT INTO Users (name, email) VALUES (?, ?)",
         [name, email]
       );
       userId = insertUser.insertId;
+      console.log("New user ID assigned:", userId);
     } else {
       userId = existingUser[0].id;
+      console.log("Existing user found with ID:", userId);
+    }
+
+    if (!userId) {
+      console.error("Error: userId is undefined!");
+      return res.status(500).json({ error: "Failed to retrieve userId" });
     }
 
     for (const answer of answers) {
@@ -36,7 +45,11 @@ router.post("/", async (req, res) => {
       );
     }
 
-    res.status(201).json({ message: "Quiz submitted successfully!" });
+    console.log("Quiz responses stored successfully for user:", userId);
+
+    const responseData = { message: "Quiz submitted successfully!", userId };
+    console.log(" Sending response to frontend:", responseData);
+    res.status(201).json(responseData);
   } catch (error) {
     console.error("Error saving quiz response:", error);
     res.status(500).json({ error: "Failed to save quiz response" });

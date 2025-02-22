@@ -38,16 +38,23 @@ const Quiz = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("Submitting quiz with data:", formData);
     try {
       const result = await submitQuiz(formData);
       console.log("Response:", result);
-      alert(result.message || "Quiz submitted!");
 
-      if (result.userId) {
+      if (result && result.userId) {
+        alert(
+          `Quiz submitted successfully! Redirecting to matches for user ${result.userId}...`
+        );
         navigate(`/matches/${result.userId}`);
+      } else {
+        alert("Quiz submitted but user ID is missing.");
+        console.error("Backend response missing userId:", result);
       }
     } catch (error) {
       console.error("Error submitting quiz:", error);
+      alert("Something went wrong. Please try again.");
     }
   };
 
