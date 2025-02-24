@@ -6,6 +6,7 @@ const Pets = () => {
   const [pets, setPets] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showAllPets, setShowAllPets] = useState(false);
 
   const [filters, setFilters] = useState({
     size: "All",
@@ -74,6 +75,10 @@ const Pets = () => {
         </label>
       </div>
 
+      <button onClick={() => setShowAllPets(!showAllPets)}>
+        {showAllPets ? "Show Matched Pets" : "Show All Pets"}
+      </button>
+
       {loading ? (
         <p>Loading pets...</p>
       ) : error ? (
@@ -94,12 +99,15 @@ const Pets = () => {
             .map((pet) => (
               <div key={pet.id} className="pet-card">
                 <h2>{pet.name}</h2>
-                {pet.photo ? (
-                  <img src={pet.photo} alt={pet.name} />
-                ) : (
-                  <p>No Image Available</p>
-                )}
-                <p>Breed: {pet.breed.primary || "unknown"}</p>
+                <img
+                  src={
+                    pet.image_url
+                      ? pet.image_url
+                      : "https://placehold.co/300x200?text=No+Image"
+                  }
+                  alt={pet.name}
+                />
+                <p>Breed: {pet.breed || "unknown"}</p>
                 <p>Age: {pet.age || "Unknown"}</p>
                 <p>Gender: {pet.gender || "Unknown"}</p>
                 <p>Size: {pet.size}</p>

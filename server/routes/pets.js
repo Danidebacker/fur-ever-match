@@ -61,20 +61,47 @@ router.get("/fetch-and-store", async (req, res) => {
 
       if (checkPet.length === 0) {
         await pool.execute(
-          "INSERT INTO pets (id, name, breed, size, energy_level, grooming_needs, location, image_url, age, gender) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+          `INSERT INTO pets 
+      (id, name, breed, size, age, gender, energy_level, grooming_needs, 
+      location, image_url, coat_length, good_with_kids, good_with_dogs, 
+      good_with_cats, training_needs) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+
           [
             pet.id,
-            pet.name,
-            pet.breeds || "Unknown",
+            pet.name || "Unknown",
+            pet.breeds?.primary || "Unknown",
             pet.size || "Unknown",
-            pet.attributes.spayed_neutered ? "Moderate" : "High",
-            "moderate grooming",
-            pet.contact.address.city || "unknown",
-            pet.primary_photo_cropped?.full ||
-              (pet.photos.length > 0 ? pet.photos[0].full : null) ||
-              "https://placehold.co/300x200?text=No+Image",
             pet.age || "Unknown",
             pet.gender || "Unknown",
+            "Moderate",
+            "Moderate Grooming",
+            pet.contact.address.city || "Unknown",
+            pet.primary_photo_cropped?.full ||
+              (pet.photos.length > 0
+                ? pet.photos[0].full
+                : "https://placehold.co/300x200?text=No+Image"),
+            pet.coat || "Unknown",
+            pet.environment.children !== null
+              ? pet.environment.children
+                ? 1
+                : 0
+              : null,
+            pet.environment.dogs !== null
+              ? pet.environment.dogs
+                ? 1
+                : 0
+              : null,
+            pet.environment.cats !== null
+              ? pet.environment.cats
+                ? 1
+                : 0
+              : null,
+            pet.attributes.house_trained !== null
+              ? pet.attributes.house_trained
+                ? "Yes"
+                : "No"
+              : null,
           ]
         );
         storedPets.push({ id: pet.id, name: pet.name });

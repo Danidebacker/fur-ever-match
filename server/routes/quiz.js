@@ -39,6 +39,7 @@ router.post("/", async (req, res) => {
     }
 
     for (const answer of answers) {
+      console.log("answerrrrrr", answer);
       await pool.execute(
         "INSERT INTO quizresponses (user_id, question_id, answer_id) VALUES (?, ?, ?)",
         [userId, answer.question_id, answer.answer_id]
@@ -106,52 +107,91 @@ router.get("/match/:userId", async (req, res) => {
     console.log(`Fetching matches for user ID: ${userId}`);
 
     const [quizResponse] = await pool.execute(
-      `SELECT q.question_id, a.energy_level, a.size, a.temperament, a.grooming_needs
-       FROM quizresponses q
-       JOIN answers a ON q.answer_id = a.id
-       WHERE q.user_id = ?
-       ORDER BY q.submitted_at DESC`,
+      `SELECT a.energy_level, a.size, a.grooming_needs, a.coat_length, 
+          a.good_with_kids, a.good_with_dogs, a.good_with_cats, a.training_needed,
+          a.shedding, a.recommended_energy_level, a.recommended_size
+    FROM quizresponses q
+    JOIN answers a ON q.answer_id = a.id
+    WHERE q.user_id = ?
+    ORDER BY q.submitted_at DESC`,
       [userId]
     );
+    console.log("quiz response", quizResponse);
 
     if (quizResponse.length === 0) {
-      console.error(" No quiz response found for this user");
       return res
         .status(404)
         .json({ error: "No quiz response found for this user" });
     }
 
     const energyLevels = quizResponse.map((q) => q.energy_level);
-    const sizes = quizResponse.map((q) => q.size);
-    const temperaments = quizResponse.map((q) => q.temperament);
-    const groomingNeeds = quizResponse.map((q) => q.grooming_needs);
+    console.log(energyLevels);
+    const recommendedEnergyLevels = quizResponse
+      .map((q) => q.recommended_energy_level)
+      .filter(Boolean);
+    console.log(recommendedEnergyLevels);
 
-    console.log("Matching criteria:", {
-      energyLevels,
-      sizes,
-      temperaments,
-      groomingNeeds,
-    });
+    const sizes = quizResponse.map((q) => q.size);
+    console.log(sizes);
+    const recommendedSizes = quizResponse
+      .map((q) => q.recommended_size)
+      .filter(Boolean);
+
+    console.log(recommendedSizes);
+    const finalSize = recommendedSizes.length > 0 ? recommendedSizes : sizes;
+    console.log(finalSize);
+    let finalEnergyLevel =
+      recommendedEnergyLevels.length > 0
+        ? recommendedEnergyLevels
+        : energyLevels;
+    console.log(finalEnergyLevel);
+    const shedding = quizResponse.map((q) => q.shedding);
+    console.log(shedding);
+
+    const groomingNeeds = quizResponse.map((q) => q.grooming_needs);
+    console.log(groomingNeeds);
+
+    const coatLength = quizResponse.map((q) => q.coat_length);
+    console.log(coatLength);
+    const trainingNeeded = quizResponse.some((q) => q.training_needed === 1)
+      ? 1
+      : 0;
+    const goodWithKids = quizResponse.some((q) => q.good_with_kids === 1)
+      ? 1
+      : null;
+    const goodWithDogs = quizResponse.some((q) => q.good_with_dogs === 1)
+      ? 1
+      : null;
+    const goodWithCats = quizResponse.some((q) => q.good_with_cats === 1)
+      ? 1
+      : null;
+    console.log(trainingNeeded, goodWithKids, goodWithDogs, goodWithCats);
 
     const [matchingPets] = await pool.execute(
-      `SELECT * FROM pets 
-        WHERE (energy_level IN (?) OR energy_level LIKE ?) 
-        AND (size IN (?) OR size LIKE ?) 
-        AND (temperament IN (?) OR temperament LIKE ?) 
-        AND (grooming_needs IN (?) OR grooming_needs LIKE ?)`,
+      `SELECT * FROM pets WHERE (energy_level IN (?) OR energy_level LIKE ? OR energy_level IS NULL OR energy_level = 'Unknown') 
+    AND (shedding IN (?) OR shedding LIKE ? OR shedding IS NULL OR shedding = 'Unknown')
+    AND (grooming_needs IN (?) OR grooming_needs LIKE ? OR grooming_needs IS NULL OR grooming_needs = 'Unknown')
+    AND (good_with_kids = ? OR good_with_kids IS NULL)
+    AND (good_with_dogs = ? OR good_with_dogs IS NULL)
+    AND (good_with_cats = ? OR good_with_cats IS NULL)
+    AND (training_needs = ? OR training_needs IS NULL)`,
       [
-        energyLevels,
-        `%${energyLevels}%`,
+        finalEnergyLevel,
+        `%${finalEnergyLevel}%`,
         sizes,
-        `%${sizes}%`,
-        temperaments,
-        `%${temperaments}%`,
+        `%${finalSize}%`,
+        shedding,
+        `%${shedding}%`,
         groomingNeeds,
         `%${groomingNeeds}%`,
+        goodWithKids,
+        goodWithDogs,
+        goodWithCats,
+        trainingNeeded,
       ]
     );
 
-    console.log("Matching pets found:", matchingPets.length);
+    console.log("Found Matches:", matchingPets.length);
 
     if (matchingPets.length === 0) {
       return res.json({

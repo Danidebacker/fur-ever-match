@@ -38,6 +38,12 @@ const Quiz = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (formData.answers.length !== questions.length) {
+      alert("Please answer all questions before submitting!!!!");
+      return;
+    }
+
     console.log("Submitting quiz with data:", formData);
     try {
       const result = await submitQuiz(formData);

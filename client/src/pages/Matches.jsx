@@ -1,50 +1,63 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import { fetchMatches, fetchPets } from "../apiService";
+import { useNavigate } from "react-router-dom";
 
 const Matches = () => {
   const { userId } = useParams();
-  const [matches, setMatches] = useState([]);
+  const navigate = useNavigate();
+
+  const [matchedPets, setMatchedPets] = useState([]);
+  const [allPets, setAllPets] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showAllPets, setShowAllPets] = useState(false);
 
   useEffect(() => {
     const fetchMatches = async () => {
-      if (!userId) return;
-
       try {
         console.log(`Fetching matches for user ID: ${userId}`);
-
-        const matchResponse = await fetch(
-          `http://localhost:5000/api/quiz/match/${userId}`
-        );
-        if (!matchResponse.ok) {
-          console.error("Failed to fetch matches:", matchResponse.statusText);
-          return;
-        }
-
-        const matchData = await matchResponse.json();
-        setMatches(matchData);
-      } catch (error) {
-        console.error("Error fetching matches:", error);
+        const matches = await fetchMatches(userId);
+        console.log("Matched Pets:", matches);
+        setMatchedPets(matches || []);
+      } catch (err) {
+        console.error("Error fetching matches:", err);
+        setError("Failed to fetch matches.");
+      } finally {
+        setLoading(false);
       }
     };
-
     fetchMatches();
   }, [userId]);
 
+  const handleShowAllPets = async () => {
+    navigate("/pets");
+  };
+
   return (
-    <div>
-      <h2>Your Pet Matches</h2>
-      {matches.length > 0 ? (
-        matches.map((pet) => (
-          <div key={pet.id}>
-            <h3>{pet.name}</h3>
-            <p>Size: {pet.size}</p>
-            <p>Energy Level: {pet.energy_level}</p>
-            <p>Grooming Needs: {pet.grooming_needs}</p>
-            <img src={pet.image_url} alt={pet.name} width="200" />
-          </div>
-        ))
+    <div className="matches-container">
+      <h2>{showAllPets ? "All Available Pets" : "Your Matched Pets"}</h2>
+
+      <button onClick={handleShowAllPets} className="show-all-pets-btn">
+        View All Available Pets
+      </button>
+
+      {loading ? (
+        <p>Loading your matches...</p>
+      ) : error ? (
+        <p className="error">{error}</p>
       ) : (
-        <p>No perfect matches found, but keep looking!</p>
+        <div className="pets-list">
+          {(showAllPets ? allPets : matchedPets).map((pet) => (
+            <div key={pet.id} className="pet-card">
+              <h2>{pet.name}</h2>
+              <img src={pet.image_url} alt={pet.name} />
+              <p>Breed: {pet.breed}</p>
+              <p>Size: {pet.size}</p>
+              <p>Energy Level: {pet.energy_level}</p>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
