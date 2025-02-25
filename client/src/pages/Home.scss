@@ -1,0 +1,63 @@
+@use "../styles/partials/fonts" as *;
+@use "../styles/partials/global" as *;
+@use "../styles/partials/variables" as *;
+
+.home {
+  font-family: $font-bubble;
+  text-align: center;
+  color: $space-cadet;
+
+  .hero {
+    position: relative;
+    background-image: url("../assets/images/dogpaws.jpeg");
+
+    background-position: center;
+    width: 100%;
+    height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &__overlay {
+      background-color: rgba(52, 50, 70, 0.5);
+      color: white;
+      padding: 2rem;
+      border-radius: 8px;
+
+      h1 {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+      }
+
+      p {
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+        line-height: 1.4;
+      }
+
+      button {
+        background-color: $old-rose;
+        color: white;
+        border: none;
+        padding: 0.8rem 1.5rem;
+        font-size: 1.4rem;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+
+        &:hover {
+          background-color: $bittersweet-shimmer;
+        }
+      }
+    }
+  }
+
+  .home__content {
+    padding: 2rem;
+
+    p {
+      font-size: 1.2rem;
+      color: $space-cadet;
+    }
+  }
+}

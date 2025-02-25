@@ -6,11 +6,11 @@ const Pets = () => {
   const [pets, setPets] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [showAllPets, setShowAllPets] = useState(false);
 
   const [filters, setFilters] = useState({
     size: "All",
-    energy_level: "All",
+    gender: "All",
+    age: "All",
   });
 
   useEffect(() => {
@@ -40,12 +40,20 @@ const Pets = () => {
     getPets();
   }, []);
 
+  const filteredPets = pets.filter((pet) => {
+    const sizeMatch = filters.size === "All" || pet.size === filters.size;
+    const genderMatch =
+      filters.gender === "All" || pet.gender === filters.gender;
+    const ageMatch = filters.age === "All" || pet.age === filters.age;
+    return sizeMatch && genderMatch && ageMatch;
+  });
+
   return (
     <div className="pets-container">
       <h1>Available Pets</h1>
 
       <div className="filters">
-        <label>
+        <label className="labels">
           Size:
           <select
             value={filters.size}
@@ -55,29 +63,38 @@ const Pets = () => {
             <option value="Small">Small</option>
             <option value="Medium">Medium</option>
             <option value="Large">Large</option>
-            <option value="Extra Large">Extra Large</option>
           </select>
         </label>
 
-        <label>
-          Energy Level:
+        <label className="labels">
+          Gender:
           <select
-            value={filters.energy_level}
-            onChange={(e) =>
-              setFilters({ ...filters, energy_level: e.target.value })
-            }
+            value={filters.gender}
+            onChange={(e) => setFilters({ ...filters, gender: e.target.value })}
           >
             <option value="All">All</option>
-            <option value="High">High</option>
-            <option value="Moderate">Moderate</option>
-            <option value="Low">Low</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
+        </label>
+
+        <label className="labels">
+          Age:
+          <select
+            value={filters.age}
+            onChange={(e) => setFilters({ ...filters, age: e.target.value })}
+          >
+            <option value="All">All</option>
+            <option value="Baby">Baby</option>
+            <option value="Young">Young</option>
+            <option value="Adult">Adult</option>
           </select>
         </label>
       </div>
 
-      <button onClick={() => setShowAllPets(!showAllPets)}>
+      {/* <button onClick={() => setShowAllPets(!showAllPets)}>
         {showAllPets ? "Show Matched Pets" : "Show All Pets"}
-      </button>
+      </button> */}
 
       {loading ? (
         <p>Loading pets...</p>
@@ -87,32 +104,23 @@ const Pets = () => {
         <p>No pets available right now. Check back later!</p>
       ) : (
         <div className="pets-list">
-          {pets
-            .filter(
-              (pet) => filters.size === "All" || pet.size === filters.size
-            )
-            .filter(
-              (pet) =>
-                filters.energy_level === "All" ||
-                pet.energy_level === filters.energy_level
-            )
-            .map((pet) => (
-              <div key={pet.id} className="pet-card">
-                <h2>{pet.name}</h2>
-                <img
-                  src={
-                    pet.image_url
-                      ? pet.image_url
-                      : "https://placehold.co/300x200?text=No+Image"
-                  }
-                  alt={pet.name}
-                />
-                <p>Breed: {pet.breed || "unknown"}</p>
-                <p>Age: {pet.age || "Unknown"}</p>
-                <p>Gender: {pet.gender || "Unknown"}</p>
-                <p>Size: {pet.size}</p>
-              </div>
-            ))}
+          {filteredPets.map((pet) => (
+            <div key={pet.id} className="pet-card">
+              <h2>{pet.name}</h2>
+              <img
+                src={
+                  pet.image_url
+                    ? pet.image_url
+                    : "https://placehold.co/300x200?text=No+Image"
+                }
+                alt={pet.name}
+              />
+              <p>Breed: {pet.breed || "unknown"}</p>
+              <p>Age: {pet.age || "Unknown"}</p>
+              <p>Gender: {pet.gender || "Unknown"}</p>
+              <p>Size: {pet.size}</p>
+            </div>
+          ))}
         </div>
       )}
     </div>

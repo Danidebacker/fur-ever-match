@@ -1,8 +1,32 @@
+@use "../styles/partials/fonts" as *;
+@use "../styles/partials/global" as *;
+@use "../styles/partials/variables" as *;
+
 .pets-container {
   text-align: center;
   padding: 20px;
+  background-color: $seasalt;
+  min-height: 100vh;
+  font-family: $font-bubble;
+}
+.filters {
+  padding: 1.875rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
 }
 
+.filters select {
+  margin-left: 15px;
+  padding: 0.5rem;
+  font-size: 1rem;
+  border: 1px solid $cool-gray;
+  border-radius: 12px;
+  background-color: $seasalt;
+  color: $space-cadet;
+}
 .pets-list {
   display: flex;
   flex-wrap: wrap;
@@ -17,9 +41,34 @@
   padding: 15px;
   width: 250px;
   text-align: center;
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  }
+
+  h2 {
+    font-size: 1.5rem;
+    color: $space-cadet;
+    margin-bottom: 10px;
+  }
+  p {
+    font-size: 1rem;
+    color: $space-cadet;
+    margin-bottom: 5px;
+  }
 }
 
 .pet-card img {
   width: 100%;
   border-radius: 10px;
+}
+
+.labels {
+  padding: 0 20px;
+  font-size: 1.4rem;
+  color: $space-cadet;
+}
+
+.select {
+  padding: 0px 20px;
 }

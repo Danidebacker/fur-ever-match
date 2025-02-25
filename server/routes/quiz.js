@@ -38,46 +38,110 @@ router.post("/", async (req, res) => {
       return res.status(500).json({ error: "Failed to retrieve userId" });
     }
 
-    for (const answer of answers) {
-      console.log("answerrrrrr", answer);
-      await pool.execute(
-        "INSERT INTO quizresponses (user_id, question_id, answer_id) VALUES (?, ?, ?)",
-        [userId, answer.question_id, answer.answer_id]
-      );
-    }
+    // const {
+    //   energy_level,
+    //   recommended_energy_level,
+    //   size,
+    //   recommended_size,
+    //   grooming_needs,
+    //   good_with_kids,
+    //   good_with_dogs,
+    //   good_with_cats,
+    //   training_needs,
+    //   shedding,
+    // } = answers.reduce((acc, answer) => {
+    //   acc[answer.category] = answer.answer_id;
+    //   return acc;
+    // }, {});
+
+    const questionMapping = {
+      1: "energy_level",
+      2: "recommended_energy_level",
+      3: "size",
+      4: "recommended_size",
+      5: "grooming_needs",
+      6: "good_with_kids",
+      7: "good_with_dogs",
+      8: "good_with_cats",
+      9: "training_needs",
+      10: "shedding",
+    };
+
+    const result = answers.reduce((acc, answer) => {
+      const key = questionMapping[answer.question_id];
+      if (key) {
+        acc[key] = answer.answer_id;
+      }
+      return acc;
+    }, {});
+
+    const {
+      energy_level,
+      recommended_energy_level,
+      size,
+      recommended_size,
+      grooming_needs,
+      good_with_kids,
+      good_with_dogs,
+      good_with_cats,
+      training_needs,
+      shedding,
+    } = result;
+
+    // await pool.execute(
+    //   `INSERT INTO quizresponses
+    //   (user_id, energy_level, recommended_energy_level, size, recommended_size, grooming_needs, good_with_kids, good_with_dogs, good_with_cats, training_needs, shedding)
+    //   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    //   [
+    //     userId,
+    //     energy_level ?? null,
+    //     recommended_energy_level ?? null,
+    //     size ?? null,
+    //     recommended_size ?? null,
+    //     grooming_needs ?? null,
+    //     good_with_kids ? 1 : 0,
+    //     good_with_dogs ? 1 : 0,
+    //     good_with_cats ? 1 : 0,
+    //     training_needs ? 1 : 0,
+    //     shedding ?? null,
+    //   ]
+    // );
+
+    await pool.execute(
+      `INSERT INTO quizresponses 
+       (user_id, energy_level, recommended_energy_level, size, recommended_size, grooming_needs, good_with_kids, good_with_dogs, good_with_cats, training_needs, shedding) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        userId,
+        energy_level ?? null,
+        recommended_energy_level ?? null,
+        size ?? null,
+        recommended_size ?? null,
+        grooming_needs ?? null,
+        good_with_kids ? 1 : 0,
+        good_with_dogs ? 1 : 0,
+        good_with_cats ? 1 : 0,
+        training_needs ? 1 : 0,
+        shedding ?? null,
+      ]
+    );
 
     console.log("Quiz responses stored successfully for user:", userId);
+    console.log("User ID after quiz submission:", userId);
 
-    const responseData = { message: "Quiz submitted successfully!", userId };
-    console.log(" Sending response to frontend:", responseData);
-    res.status(201).json(responseData);
+    res.status(201).json({ message: "Quiz submitted successfully!", userId });
   } catch (error) {
     console.error("Error saving quiz response:", error);
     res.status(500).json({ error: "Failed to save quiz response" });
   }
 });
 
-router.get("/user", async (req, res) => {
-  const { email } = req.query;
-  try {
-    const [user] = await pool.execute("SELECT id FROM Users WHERE email = ?", [
-      email,
-    ]);
-
-    if (user.length === 0) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    res.json({ id: user[0].id });
-  } catch (error) {
-    console.error("Error fetching user ID:", error);
-    res.status(500).json({ error: "Server error" });
-  }
-});
-
 router.get("/questions", async (req, res) => {
   try {
     const [questions] = await pool.execute("SELECT * FROM questions");
+    const [possible_answers] = await pool.execute(
+      "SELECT * FROM possible_answers"
+    );
 
     const questionsWithAnswers = [];
     for (const question of questions) {
@@ -91,6 +155,7 @@ router.get("/questions", async (req, res) => {
         text: question.text,
         category: question.category,
         answers,
+        possible_answers,
       });
     }
 
@@ -107,16 +172,13 @@ router.get("/match/:userId", async (req, res) => {
     console.log(`Fetching matches for user ID: ${userId}`);
 
     const [quizResponse] = await pool.execute(
-      `SELECT a.energy_level, a.size, a.grooming_needs, a.coat_length, 
-          a.good_with_kids, a.good_with_dogs, a.good_with_cats, a.training_needed,
-          a.shedding, a.recommended_energy_level, a.recommended_size
-    FROM quizresponses q
-    JOIN answers a ON q.answer_id = a.id
-    WHERE q.user_id = ?
-    ORDER BY q.submitted_at DESC`,
+      `SELECT * FROM quizresponses
+        WHERE user_id = ?
+      ORDER BY submitted_at DESC
+      LIMIT 1`,
       [userId]
     );
-    console.log("quiz response", quizResponse);
+    console.log("Quiz response:", quizResponse);
 
     if (quizResponse.length === 0) {
       return res
@@ -126,6 +188,7 @@ router.get("/match/:userId", async (req, res) => {
 
     const energyLevels = quizResponse.map((q) => q.energy_level);
     console.log(energyLevels);
+
     const recommendedEnergyLevels = quizResponse
       .map((q) => q.recommended_energy_level)
       .filter(Boolean);
@@ -136,23 +199,22 @@ router.get("/match/:userId", async (req, res) => {
     const recommendedSizes = quizResponse
       .map((q) => q.recommended_size)
       .filter(Boolean);
-
     console.log(recommendedSizes);
     const finalSize = recommendedSizes.length > 0 ? recommendedSizes : sizes;
     console.log(finalSize);
+
     let finalEnergyLevel =
       recommendedEnergyLevels.length > 0
         ? recommendedEnergyLevels
         : energyLevels;
     console.log(finalEnergyLevel);
+
     const shedding = quizResponse.map((q) => q.shedding);
     console.log(shedding);
 
     const groomingNeeds = quizResponse.map((q) => q.grooming_needs);
     console.log(groomingNeeds);
 
-    const coatLength = quizResponse.map((q) => q.coat_length);
-    console.log(coatLength);
     const trainingNeeded = quizResponse.some((q) => q.training_needed === 1)
       ? 1
       : 0;
@@ -167,29 +229,35 @@ router.get("/match/:userId", async (req, res) => {
       : null;
     console.log(trainingNeeded, goodWithKids, goodWithDogs, goodWithCats);
 
-    const [matchingPets] = await pool.execute(
-      `SELECT * FROM pets WHERE (energy_level IN (?) OR energy_level LIKE ? OR energy_level IS NULL OR energy_level = 'Unknown') 
-    AND (shedding IN (?) OR shedding LIKE ? OR shedding IS NULL OR shedding = 'Unknown')
-    AND (grooming_needs IN (?) OR grooming_needs LIKE ? OR grooming_needs IS NULL OR grooming_needs = 'Unknown')
-    AND (good_with_kids = ? OR good_with_kids IS NULL)
-    AND (good_with_dogs = ? OR good_with_dogs IS NULL)
-    AND (good_with_cats = ? OR good_with_cats IS NULL)
-    AND (training_needs = ? OR training_needs IS NULL)`,
-      [
-        finalEnergyLevel,
-        `%${finalEnergyLevel}%`,
-        sizes,
-        `%${finalSize}%`,
-        shedding,
-        `%${shedding}%`,
-        groomingNeeds,
-        `%${groomingNeeds}%`,
-        goodWithKids,
-        goodWithDogs,
-        goodWithCats,
-        trainingNeeded,
-      ]
-    );
+    const energyPlaceholders = finalEnergyLevel.map(() => "?").join(", ");
+    const sizePlaceholders = sizes.map(() => "?").join(", ");
+    const sheddingPlaceholders = shedding.map(() => "?").join(", ");
+    const groomingPlaceholders = groomingNeeds.map(() => "?").join(", ");
+
+    const query = `
+      SELECT * FROM pets 
+      WHERE (energy_level IN (${energyPlaceholders}) OR energy_level IS NULL OR energy_level = 'Unknown') 
+      AND (size IN (${sizePlaceholders}) OR size IS NULL OR size = 'Unknown')
+      AND (shedding IN (${sheddingPlaceholders}) OR shedding IS NULL OR shedding = 'Unknown')
+      AND (grooming_needs IN (${groomingPlaceholders}) OR grooming_needs IS NULL OR grooming_needs = 'Unknown')
+      AND (good_with_kids = ? OR good_with_kids IS NULL)
+      AND (good_with_dogs = ? OR good_with_dogs IS NULL)
+      AND (good_with_cats = ? OR good_with_cats IS NULL)
+      AND (training_needs = ? OR training_needs IS NULL)
+    `;
+
+    const values = [
+      ...finalEnergyLevel,
+      ...finalSize,
+      ...shedding,
+      ...groomingNeeds,
+      goodWithKids,
+      goodWithDogs,
+      goodWithCats,
+      trainingNeeded,
+    ];
+
+    const [matchingPets] = await pool.execute(query, values);
 
     console.log("Found Matches:", matchingPets.length);
 

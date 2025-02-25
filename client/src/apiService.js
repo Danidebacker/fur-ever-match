@@ -16,6 +16,7 @@ export async function fetchPets() {
 }
 
 export async function submitQuiz(quizData) {
+  console.log("quiz data: ", quizData);
   try {
     const response = await fetch(`${API_BASE_URL}/quiz`, {
       method: "POST",
@@ -30,16 +31,23 @@ export async function submitQuiz(quizData) {
     return await response.json();
   } catch (error) {
     console.error("Error submitting quiz:", error);
-    return null;
+    return { error: "Failed to submit quiz" };
   }
 }
 
 export async function fetchMatches(userId) {
+  if (!userId) {
+    console.error("Error: userId is undefined when fetching matches.");
+    return [];
+  }
   try {
+    console.log(`Fetching matches for user ID: ${userId}`);
     const response = await fetch(`${API_BASE_URL}/quiz/match/${userId}`);
+
     if (!response.ok) {
       throw new Error(`Failed to fetch matches: ${response.statusText}`);
     }
+
     return await response.json();
   } catch (error) {
     console.error("Error fetching matches:", error);
