@@ -30,16 +30,22 @@ export async function submitQuiz(quizData) {
     return await response.json();
   } catch (error) {
     console.error("Error submitting quiz:", error);
-    return null;
+    return { error: "Failed to submit quiz" };
   }
 }
 
 export async function fetchMatches(userId) {
+  if (!userId) {
+    console.error("Error: userId is undefined when fetching matches.");
+    return [];
+  }
   try {
     const response = await fetch(`${API_BASE_URL}/quiz/match/${userId}`);
+
     if (!response.ok) {
       throw new Error(`Failed to fetch matches: ${response.statusText}`);
     }
+
     return await response.json();
   } catch (error) {
     console.error("Error fetching matches:", error);
@@ -49,13 +55,12 @@ export async function fetchMatches(userId) {
 
 export async function fetchQuizQuestions() {
   try {
-    console.log("Fetching quiz questions...");
     const response = await fetch(`${API_BASE_URL}/quiz/questions`);
     if (!response.ok) {
       throw new Error(`Failed to fetch questions: ${response.statusText}`);
     }
     const data = await response.json();
-    console.log("Questions received:", data);
+
     return data;
   } catch (error) {
     console.error("Error fetching questions:", error);

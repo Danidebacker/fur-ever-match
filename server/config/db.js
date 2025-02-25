@@ -14,18 +14,18 @@ const pool = mysql.createPool({
 async function testDBConnection() {
   try {
     await pool.query("SELECT 1");
-    console.log("✅ Connected to MySQL database.");
+    console.log("Connected to MySQL database.");
   } catch (err) {
-    console.error("❌ Database connection failed:", err.message);
+    console.error("Database connection failed:", err.message);
   }
 }
 
 testDBConnection();
 
 pool.on("error", (err) => {
-  console.error("❌ MySQL Pool Error:", err);
+  console.error("MySQL Pool Error:", err);
   if (err.code === "PROTOCOL_CONNECTION_LOST") {
-    console.log("🔄 Reconnecting to MySQL...");
+    console.log("Reconnecting to MySQL...");
     testDBConnection();
   } else {
     throw err;

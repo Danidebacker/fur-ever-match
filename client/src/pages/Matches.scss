@@ -2,31 +2,36 @@
 @use "../styles/partials/global" as *;
 @use "../styles/partials/variables" as *;
 
-.pets-container {
+.matches-container {
   text-align: center;
-  padding: 1.25rem;
+  padding: 4rem 1.25rem;
   background-color: $seasalt;
   min-height: 100vh;
   font-family: $font-bubble;
-}
-.filters {
-  padding: 1.875rem;
-  margin-bottom: 1.5rem;
-  display: flex;
-  justify-content: center;
-  gap: 1.25rem;
-  flex-wrap: wrap;
+
+  h2 {
+    font-size: 2rem;
+    color: $old-rose;
+    margin-bottom: 1rem;
+  }
+
+  button {
+    background-color: $space-cadet;
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+    border-radius: 0.625rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin: 1.5rem 0;
+
+    &:hover {
+      background-color: $bittersweet-shimmer;
+    }
+  }
 }
 
-.filters select {
-  margin-left: 0.9375rem;
-  padding: 0.5rem;
-  font-size: 1rem;
-  border: 1px solid $cool-gray;
-  border-radius: 0.75rem;
-  background-color: $seasalt;
-  color: $space-cadet;
-}
 .pets-list {
   display: flex;
   flex-wrap: wrap;
@@ -36,11 +41,13 @@
 
 .pet-card {
   background: #fff;
-  border-radius: 0.625rem;
+  border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   padding: 0.9375rem;
   width: 15.625rem;
   text-align: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
   &:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
@@ -48,27 +55,24 @@
 
   h2 {
     font-size: 1.5rem;
-    color: $space-cadet;
+    color: $old-rose;
     margin-bottom: 0.625rem;
   }
+
   p {
     font-size: 1rem;
     color: $space-cadet;
     margin-bottom: 0.3125rem;
   }
+
+  img {
+    width: 100%;
+    border-radius: 0.625rem;
+    margin-bottom: 0.625rem;
+  }
 }
 
-.pet-card img {
-  width: 100%;
-  border-radius: 0.625rem;
-}
-
-.labels {
-  padding: 0 1.25rem;
-  font-size: 1.4rem;
-  color: $space-cadet;
-}
-
-.select {
-  padding: 0 1.25rem;
+.error {
+  color: $bittersweet-shimmer;
+  font-size: 1.2rem;
 }

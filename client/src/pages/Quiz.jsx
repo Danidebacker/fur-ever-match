@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { fetchQuizQuestions, submitQuiz } from "../apiService";
 import { useNavigate } from "react-router-dom";
+import "./Quiz.scss";
 
 const Quiz = () => {
   const navigate = useNavigate();
@@ -16,13 +17,13 @@ const Quiz = () => {
     const loadQuestions = async () => {
       console.log("Loading quiz questions...");
       const fetchedQuestions = await fetchQuizQuestions();
-      console.log("Questions in Quiz Component:", fetchedQuestions);
+
       setQuestions(fetchedQuestions);
     };
     loadQuestions();
   }, []);
 
-  const handleChange = (e, questionId) => {
+  const handleChange = (e, questionId, value) => {
     setFormData((prev) => {
       const updatedAnswers = prev.answers.filter(
         (a) => a.question_id !== questionId
@@ -30,6 +31,7 @@ const Quiz = () => {
       updatedAnswers.push({
         question_id: questionId,
         answer_id: parseInt(e.target.value),
+        value,
       });
 
       return { ...prev, answers: updatedAnswers };
@@ -44,10 +46,8 @@ const Quiz = () => {
       return;
     }
 
-    console.log("Submitting quiz with data:", formData);
     try {
       const result = await submitQuiz(formData);
-      console.log("Response:", result);
 
       if (result && result.userId) {
         alert(
@@ -65,7 +65,7 @@ const Quiz = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form className="quiz-form" onSubmit={handleSubmit}>
       <input
         type="text"
         name="name"
@@ -81,20 +81,22 @@ const Quiz = () => {
         required
       />
       {questions.map((question) => (
-        <div key={question.id}>
+        <div key={question.id} className="question">
           <p>{question.text}</p>
-          {question.answers.map((answer) => (
-            <label key={answer.id}>
-              <input
-                type="radio"
-                name={`question-${question.id}`}
-                value={answer.id}
-                onChange={(e) => handleChange(e, question.id)}
-                required
-              />
-              {answer.text}
-            </label>
-          ))}
+          {question.answers.map((answer) => {
+            return (
+              <label key={answer.id}>
+                <input
+                  type="radio"
+                  name={`-${question.id}`}
+                  value={answer.id}
+                  onChange={(e) => handleChange(e, question.id, answer.value)}
+                  required
+                />
+                {answer.text}
+              </label>
+            );
+          })}
         </div>
       ))}
 
