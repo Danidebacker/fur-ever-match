@@ -18,14 +18,14 @@ const Pets = () => {
       setLoading(true);
       try {
         const petData = await fetchPets();
-        console.log("Raw API Response:", petData);
+
         if (Array.isArray(petData)) {
           const uniquePets = Array.from(
             new Map(
               petData.map((pet) => [`${pet.name}-${pet.breed.primary}`, pet])
             ).values()
           );
-          console.log("Filtered Unique Pets:", uniquePets);
+
           setPets(uniquePets);
         } else {
           setPets([]);

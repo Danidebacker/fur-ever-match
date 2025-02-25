@@ -16,7 +16,6 @@ export async function fetchPets() {
 }
 
 export async function submitQuiz(quizData) {
-  console.log("quiz data: ", quizData);
   try {
     const response = await fetch(`${API_BASE_URL}/quiz`, {
       method: "POST",
@@ -41,7 +40,6 @@ export async function fetchMatches(userId) {
     return [];
   }
   try {
-    console.log(`Fetching matches for user ID: ${userId}`);
     const response = await fetch(`${API_BASE_URL}/quiz/match/${userId}`);
 
     if (!response.ok) {
@@ -57,13 +55,12 @@ export async function fetchMatches(userId) {
 
 export async function fetchQuizQuestions() {
   try {
-    console.log("Fetching quiz questions...");
     const response = await fetch(`${API_BASE_URL}/quiz/questions`);
     if (!response.ok) {
       throw new Error(`Failed to fetch questions: ${response.statusText}`);
     }
     const data = await response.json();
-    console.log("Questions received:", data);
+
     return data;
   } catch (error) {
     console.error("Error fetching questions:", error);

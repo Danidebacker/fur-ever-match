@@ -34,9 +34,7 @@ async function getAccessToken() {
 
 router.get("/fetch-and-store", async (req, res) => {
   try {
-    console.log("Fetching access token...");
     const accessToken = await getAccessToken();
-    console.log("Access token received:", accessToken ? " Yes" : " No");
 
     const response = await axios.get(`${PETFINDER_API_URL}/animals`, {
       headers: {
@@ -49,7 +47,6 @@ router.get("/fetch-and-store", async (req, res) => {
     });
 
     const pets = response.data.animals;
-    console.log(`Retrieved ${pets.length} pets from Petfinder`);
 
     let storedPets = [];
 
@@ -107,8 +104,6 @@ router.get("/fetch-and-store", async (req, res) => {
         storedPets.push({ id: pet.id, name: pet.name });
       }
     }
-
-    console.log("Stored pets count:", storedPets.length);
 
     res.json({
       message: "Pets fetched and stored successfully!",

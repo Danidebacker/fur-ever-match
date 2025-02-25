@@ -9,6 +9,7 @@ const Matches = () => {
   const navigate = useNavigate();
 
   const [matchedPets, setMatchedPets] = useState([]);
+  const [viewMore, setViewMore] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -16,15 +17,17 @@ const Matches = () => {
   useEffect(() => {
     const getMatches = async () => {
       try {
-        console.log(`Fetching matches for user ID: ${userId}`);
         const matches = await fetchMatches(userId);
 
         if (!matches || !Array.isArray(matches)) {
           throw new Error("Invalid response format");
         }
 
-        console.log("Matched Pets:", matches);
-        setMatchedPets(matches);
+        const shuffledMatches = matches
+          .sort(() => Math.random() - 0.5)
+          .slice(0, 20);
+
+        setMatchedPets(shuffledMatches);
       } catch (err) {
         console.error("Error fetching matches:", err);
         setError("Failed to fetch matches.");
@@ -57,21 +60,29 @@ const Matches = () => {
         </p>
       ) : (
         <div className="pets-list">
-          {matchedPets.map((pet) => (
-            <div key={pet.id} className="pet-card">
-              <h2>{pet.name}</h2>
-              <img
-                src={
-                  pet.image_url || "https://placehold.co/300x200?text=No+Image"
-                }
-                alt={pet.name}
-              />
-              <p>Breed: {pet.breed}</p>
-              <p>Size: {pet.size}</p>
-              <p>Energy Level: {pet.energy_level}</p>
-            </div>
-          ))}
+          {matchedPets
+            .slice(0, viewMore ? matchedPets.length : 5)
+            .map((pet) => (
+              <div key={pet.id} className="pet-card">
+                <h2>{pet.name}</h2>
+                <img
+                  src={
+                    pet.image_url ||
+                    "https://placehold.co/300x200?text=No+Image"
+                  }
+                  alt={pet.name}
+                />
+                <p>Breed: {pet.breed}</p>
+                <p>Size: {pet.size}</p>
+                <p>Energy Level: {pet.energy_level}</p>
+              </div>
+            ))}
         </div>
+      )}
+      {!viewMore && matchedPets.length > 5 && (
+        <button onClick={() => setViewMore(true)} className="view-more-btn">
+          View More Matches
+        </button>
       )}
     </div>
   );
