@@ -143,3 +143,11 @@ POST /register → Registers a new user.
 POST /login → Authenticates an existing user.
 GET /users/:id → Retrieves user profile information.
 POST /contact/:petId → Sends an adoption inquiry to the respective shelter.
+
+
+## Database Setup
+1. Navigate to the `database` folder:
+   ```sh
+   cd database
+2. Import the schema into MySQL: in bash: mysql -u rootroot -p data-furever < schema.sql
+
